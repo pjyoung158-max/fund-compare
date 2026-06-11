@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>변액보험 펀드 비교</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
+.topbar{background:#fff;border-bottom:1px solid #e5e5e5;padding:0 32px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:16px;font-weight:500}
+.topbar-sub{font-size:12px;color:#888;margin-left:auto}
+.nav-btn{font-size:13px;padding:6px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#555}
+.nav-btn.active{background:#378ADD;color:#fff;border-color:#378ADD}
+.container{max-width:1100px;margin:0 auto;padding:32px 24px}
+.section-label{font-size:11px;font-weight:500;color:#999;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.ins-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:28px}
+.grp-row{grid-column:1/-1;font-size:11px;font-weight:500;color:#aaa;padding:10px 2px 2px;letter-spacing:.04em;border-top:1px solid #eee;margin-top:4px}
+.grp-row:first-child{border-top:none;margin-top:0}
+.ins-card{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s}
+.ins-card:hover{border-color:#bbb;background:#fafafa}
+.ins-card.active{border:2px solid #378ADD;background:#EBF4FD}
+.ins-card.active .ins-name{color:#0C447C}
+.ins-card.active .ins-meta{color:#185FA5}
+.ins-name{font-size:13px;font-weight:500;margin-bottom:3px}
+.ins-meta{font-size:11px;color:#888}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat{background:#fff;border:1px solid #eee;border-radius:10px;padding:14px 16px}
+.stat-lbl{font-size:11px;color:#888;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:500}
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.filter-bar input,.filter-bar select{font-size:13px;height:34px;padding:0 12px;border-radius:8px;border:1px solid #ddd;outline:none;background:#fff}
+.filter-bar input:focus,.filter-bar select:focus{border-color:#378ADD}
+.filter-bar input{width:180px}
+.chip{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#666}
+.chip.active{background:#EBF4FD;border-color:#378ADD;color:#0C447C;font-weight:500}
+.tbl-wrap{background:#fff;border:1px solid #e8e8e8;border-radius:12px;overflow:hidden;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+thead th{background:#fafafa;padding:10px 14px;text-align:left;font-size:11px;font-weight:500;color:#888;border-bottom:1px solid #eee}
+tbody tr{border-bottom:1px solid #f0f0f0;transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fafafa}
+tbody td{padding:10px 14px;cursor:pointer}
+tbody td:first-child{cursor:default}
+.badge{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.b주식형{background:#FAECE7;color:#993C1D}
+.b채권형{background:#E1F5EE;color:#0F6E56}
+.b혼합형{background:#EEEDFE;color:#3C3489}
+.bMMF{background:#FAEEDA;color:#854F0B}
+.bELS형{background:#E8F4FD;color:#0C5A9E}
+.bTDF형{background:#F0EBF8;color:#5B2D8E}
+.b기타{background:#F1EFE8;color:#5F5E5A}
+.cbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 0}
+.ctag{font-size:12px;padding:4px 10px;background:#EBF4FD;color:#0C447C;border-radius:20px;display:inline-flex;align-items:center;gap:5px}
+.ctag button{background:none;border:none;cursor:pointer;color:#185FA5;font-size:15px;line-height:1;padding:0}
+.cbtn{margin-left:auto;font-size:13px;font-weight:500;padding:8px 20px;background:#378ADD;color:#fff;border:none;border-radius:8px;cursor:pointer}
+.cbtn:disabled{background:#ddd;color:#aaa;cursor:not-allowed}
+.back-btn{font-size:13px;color:#666;background:#fff;border:1px solid #ddd;border-radius:8px;padding:7px 16px;cursor:pointer;margin-bottom:20px;display:inline-flex;align-items:center;gap:6px}
+.loading{text-align:center;padding:3rem;color:#aaa;font-size:13px}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #ddd;border-top-color:#378ADD;border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chart-wrap{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:20px;margin-bottom:16px}
+.period-btns{display:flex;gap:6px;flex-wrap:wrap}
+.period-btn{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#666}
+.period-btn.active{background:#378ADD;border-color:#378ADD;color:#fff;font-weight:500}
+.returns-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+.return-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px;text-align:center}
+.return-lbl{font-size:11px;color:#888;margin-bottom:4px}
+.return-val{font-size:16px;font-weight:500}
+.return-val.up{color:#c0392b}
+.return-val.dn{color:#27ae60}
+.detail-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.detail-stat{background:#fff;border:1px solid #eee;border-radius:10px;padding:14px 16px}
+.detail-stat-lbl{font-size:11px;color:#888;margin-bottom:4px}
+.detail-stat-val{font-size:20px;font-weight:500}
+.detail-stat-sub{font-size:11px;color:#aaa;margin-top:2px}
+.search-box{position:relative;margin-bottom:20px}
+.search-box input{width:100%;font-size:14px;height:44px;padding:0 16px;border-radius:10px;border:1px solid #ddd;outline:none}
+.search-box input:focus{border-color:#378ADD}
+.search-results{position:absolute;top:48px;left:0;right:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.08);max-height:320px;overflow-y:auto;z-index:100}
+.sri{padding:10px 16px;cursor:pointer;border-bottom:1px solid #f5f5f5}
+.sri:last-child{border-bottom:none}
+.sri:hover{background:#f7f9fc}
+.sri-name{font-size:13px;font-weight:500}
+.sri-meta{font-size:12px;color:#888}
+.cmp-basket{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;min-height:44px;align-items:center}
+.cmp-tag{font-size:12px;padding:6px 12px;background:#EBF4FD;color:#0C447C;border-radius:20px;display:inline-flex;align-items:center;gap:6px;border:1px solid #B5D4F4}
+.cmp-tag button{background:none;border:none;cursor:pointer;color:#185FA5;font-size:15px;line-height:1;padding:0}
+.cmp-go-btn{font-size:13px;font-weight:500;padding:8px 20px;background:#378ADD;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-left:auto}
+.cmp-go-btn:disabled{background:#ddd;color:#aaa;cursor:not-allowed}
+.cmp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.cmp-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:16px}
+.crc-title{font-size:13px;font-weight:500;margin-bottom:2px;line-height:1.4}
+.crc-ins{font-size:11px;color:#888;margin-bottom:12px}
+.crc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid #f0f0f0}
+.crc-lbl{font-size:12px;color:#888}
+.crc-val{font-size:13px;font-weight:500}
+.ret{font-size:14px;font-weight:500}
+.ret.up{color:#c0392b}
+.ret.dn{color:#27ae60}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.cli{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#666}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-title">변액보험 펀드 비교</div>
+  <button class="nav-btn active" id="nav-browse" onclick="switchTab('browse')">보험사별 탐색</button>
+  <button class="nav-btn" id="nav-compare" onclick="switchTab('compare')">펀드 비교</button>
+  <div class="topbar-sub" id="data-date"></div>
+</div>
+<div class="container">
+
+  <!-- 탭1: 보험사별 탐색 -->
+  <div id="tab-browse">
+    <p class="section-label">보험사 선택 <span id="ins-count" style="font-size:11px;color:#bbb;font-weight:400;text-transform:none;letter-spacing:0"></span></p>
+    <div class="ins-grid" id="ins-grid">
+      <div class="loading" style="grid-column:1/-1"><span class="spinner"></span>보험사 목록 불러오는 중...</div>
+    </div>
+    <div id="fund-section" style="display:none">
+      <div class="stat-row" id="stat-row"></div>
+      <div class="filter-bar">
+        <input type="text" id="search" placeholder="펀드명 검색..." oninput="onSearch(this.value)"/>
+        <div id="chips"></div>
+        <select id="sort-sel" onchange="onSort(this.value)">
+          <option value="prc_desc">기준가 높은 순</option>
+          <option value="prc_asc">기준가 낮은 순</option>
+          <option value="aum_desc">순자산 큰 순</option>
+          <option value="aum_asc">순자산 작은 순</option>
+          <option value="nm_asc">펀드명 가나다순</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:36px"></th>
+            <th style="width:38%">펀드명 (클릭하면 상세보기)</th>
+            <th style="width:11%">유형</th>
+            <th style="width:13%">기준가</th>
+            <th style="width:15%">순자산(억)</th>
+            <th style="width:12%">기준일</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="cbar">
+        <span id="ccount" style="font-size:12px;color:#888">펀드를 선택하면 비교 탭에 추가돼요</span>
+        <div id="ctags"></div>
+        <button class="cbtn" id="cbtn" disabled onclick="goToCompare()">비교 탭에서 보기 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭2: 펀드 비교 -->
+  <div id="tab-compare" style="display:none">
+    <div id="cmp-search-view">
+      <p class="section-label">펀드 검색 <span style="font-size:11px;color:#bbb;font-weight:400;text-transform:none;letter-spacing:0">— 보험사 구분 없이 최대 4개 선택</span></p>
+      <div class="search-box">
+        <input type="text" id="cmp-search-input" placeholder="펀드명으로 검색 (예: 삼성그룹주, 글로벌성장...)" oninput="onCmpSearch(this.value)" autocomplete="off"/>
+        <div class="search-results" id="cmp-search-results" style="display:none"></div>
+      </div>
+      <div style="display:flex;align-items:center;margin-bottom:10px">
+        <span style="font-size:13px;font-weight:500">선택된 펀드</span>
+        <button class="cmp-go-btn" id="cmp-go-btn" disabled onclick="runCompare()">비교하기 →</button>
+      </div>
+      <div class="cmp-basket" id="cmp-basket">
+        <span style="font-size:13px;color:#aaa">펀드를 검색해서 추가해보세요</span>
+      </div>
+    </div>
+    <div id="cmp-result-view" style="display:none">
+      <button class="back-btn" onclick="document.getElementById('cmp-result-view').style.display='none';document.getElementById('cmp-search-view').style.display='block'">← 다시 선택</button>
+      <p style="font-size:18px;font-weight:500;margin-bottom:20px" id="cmp-result-title"></p>
+      <div class="cmp-cards" id="cmp-result-cards"></div>
+      <div class="chart-wrap">
+        <div style="font-size:13px;font-weight:500;margin-bottom:14px">구간별 수익률 비교</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:500px">
+            <thead>
+              <tr style="background:#fafafa">
+                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:500;color:#888;border-bottom:1px solid #eee;width:35%">펀드명</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;color:#888;border-bottom:1px solid #eee">1개월</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;color:#888;border-bottom:1px solid #eee">3개월</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;color:#888;border-bottom:1px solid #eee">6개월</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;color:#888;border-bottom:1px solid #eee">1년</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;color:#888;border-bottom:1px solid #eee">3년</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;color:#888;border-bottom:1px solid #eee">5년</th>
+              </tr>
+            </thead>
+            <tbody id="cmp-ret-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div style="font-size:13px;font-weight:500">기준가 추이 비교</div>
+          <div class="period-btns" id="cmp-period-btns">
+            <span class="period-btn" onclick="changeCmpPeriod(this,'1')">1개월</span>
+            <span class="period-btn" onclick="changeCmpPeriod(this,'3')">3개월</span>
+            <span class="period-btn" onclick="changeCmpPeriod(this,'6')">6개월</span>
+            <span class="period-btn active" onclick="changeCmpPeriod(this,'12')">1년</span>
+            <span class="period-btn" onclick="changeCmpPeriod(this,'36')">3년</span>
+            <span class="period-btn" onclick="changeCmpPeriod(this,'60')">5년</span>
+            <span class="period-btn" onclick="changeCmpPeriod(this,'0')">전체</span>
+          </div>
+        </div>
+        <div class="chart-legend" id="cmp-legend"></div>
+        <div style="position:relative;width:100%;height:320px">
+          <canvas id="cmp-line-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 상세 뷰 -->
+  <div id="view-detail" style="display:none;padding:1rem 0">
+    <button class="back-btn" onclick="goBackToList()">← 목록으로</button>
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:500;margin-bottom:6px" id="detail-title"></div>
+      <div style="font-size:13px;color:#888" id="detail-meta"></div>
+    </div>
+    <div class="detail-stats" id="detail-stats"></div>
+    <div class="chart-wrap">
+      <div style="font-size:13px;font-weight:500;margin-bottom:14px">구간별 수익률</div>
+      <div class="returns-grid" id="returns-grid"><div class="loading"><span class="spinner"></span></div></div>
+    </div>
+    <div class="chart-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:13px;font-weight:500">기준가 추이</div>
+        <div class="period-btns" id="period-btns">
+          <span class="period-btn" onclick="changePeriod(this,'1')">1개월</span>
+          <span class="period-btn" onclick="changePeriod(this,'3')">3개월</span>
+          <span class="period-btn" onclick="changePeriod(this,'6')">6개월</span>
+          <span class="period-btn active" onclick="changePeriod(this,'12')">1년</span>
+          <span class="period-btn" onclick="changePeriod(this,'36')">3년</span>
+          <span class="period-btn" onclick="changePeriod(this,'60')">5년</span>
+          <span class="period-btn" onclick="changePeriod(this,'0')">전체</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#aaa;margin-bottom:8px" id="detail-loading-msg"></div>
+      <div style="position:relative;width:100%;height:280px"><canvas id="detail-chart"></canvas></div>
+    </div>
+    <div class="chart-wrap">
+      <div style="font-size:13px;font-weight:500;margin-bottom:14px">순자산 추이</div>
+      <div style="position:relative;width:100%;height:200px"><canvas id="detail-aum-chart"></canvas></div>
+    </div>
+  </div>
+
+</div>
+<script>
+const TYPES=['전체','주식형','채권형','혼합형','ELS형','TDF형','MMF','기타'];
+const COLORS=['#378ADD','#D85A30','#2ECC71','#9B59B6','#F39C12','#1ABC9C'];
+let allFunds=[],selIds=new Set(),activeType='전체',searchQ='',sortKey='prc_desc';
+let curIns=null,detailChart=null,detailAumChart=null,cmpLineChart=null;
+let allHistory=[],cmpBasket=[],cmpHistories={},cmpReturns={};
+
+function safe(v){return v!==null&&v!==undefined?v:0;}
+function safeStr(v){return v||'-';}
+
+async function init(){
+  try{
+    const res=await fetch('/api/insurers');
+    const d=await res.json();
+    if(!d.success) throw new Error(d.error);
+    if(d.data[0]?.basDt) document.getElementById('data-date').textContent='기준일 '+d.data[0].basDt;
+    document.getElementById('ins-count').textContent=`— 총 ${d.data.length}개 보험사`;
+    renderInsurers(d.data);
+  }catch(e){
+    document.getElementById('ins-grid').innerHTML=`<div class="loading" style="grid-column:1/-1;color:#c0392b">오류: ${e.message}</div>`;
+  }
+}
+
+function switchTab(tab){
+  document.getElementById('tab-browse').style.display=tab==='browse'?'block':'none';
+  document.getElementById('tab-compare').style.display=tab==='compare'?'block':'none';
+  document.getElementById('view-detail').style.display='none';
+  document.getElementById('nav-browse').classList.toggle('active',tab==='browse');
+  document.getElementById('nav-compare').classList.toggle('active',tab==='compare');
+}
+
+function classifyGroup(name){
+  if(['삼성','한화','교보','미래에셋'].some(n=>name.includes(n))) return '대형사';
+  if(['메트라이프','ABL','AIA','BNP','처브','라이나','푸본','오렌지','알리안츠','PCA'].some(n=>name.includes(n))) return '외국계';
+  return '중형사';
+}
+
+function renderInsurers(list){
+  const grouped={};
+  list.forEach(ins=>{
+    const g=classifyGroup(ins.name);
+    if(!grouped[g]) grouped[g]=[];
+    grouped[g].push(ins);
+  });
+  const order=['대형사','중형사','외국계'];
+  document.getElementById('ins-grid').innerHTML=order.filter(g=>grouped[g]).map(g=>
+    `<div class="grp-row">${g}</div>`+
+    grouped[g].map(ins=>
+      `<div class="ins-card${curIns===ins.name?' active':''}" onclick="selectIns(this,'${ins.name.replace(/'/g,"\\'")}')">
+        <div class="ins-name">${ins.name}</div>
+        <div class="ins-meta">펀드 ${safe(ins.fundCount)}개 · ${safe(ins.totalAum).toLocaleString()}억</div>
+      </div>`
+    ).join('')
+  ).join('');
+}
+
+async function selectIns(el,name){
+  curIns=name;selIds.clear();activeType='전체';searchQ='';
+  document.getElementById('search').value='';
+  document.getElementById('sort-sel').value='prc_desc';sortKey='prc_desc';
+  document.querySelectorAll('.ins-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('fund-section').style.display='block';
+  document.getElementById('stat-row').innerHTML='';
+  document.getElementById('tbody').innerHTML=`<tr><td colspan="6" class="loading"><span class="spinner"></span>${name} 펀드 불러오는 중...</td></tr>`;
+  document.getElementById('fund-section').scrollIntoView({behavior:'smooth',block:'start'});
+  try{
+    const res=await fetch('/api/funds?insurer='+encodeURIComponent(name));
+    const d=await res.json();
+    if(!d.success) throw new Error(d.error);
+    allFunds=(d.data||[]).filter(f=>f&&f.fndNm);
+    const totalAum=allFunds.reduce((s,f)=>s+safe(f.nPptAmt),0);
+    const avgPrc=allFunds.length?allFunds.reduce((s,f)=>s+safe(f.basprc),0)/allFunds.length:0;
+    document.getElementById('stat-row').innerHTML=[
+      ['총 펀드 수',`${allFunds.length}개`],
+      ['총 순자산',`${totalAum.toLocaleString()}억`],
+      ['평균 기준가',Math.round(avgPrc).toLocaleString()],
+    ].map(([l,v])=>`<div class="stat"><div class="stat-lbl">${l}</div><div class="stat-val">${v}</div></div>`).join('');
+    renderChips();renderFunds();updateBar();
+  }catch(e){
+    document.getElementById('tbody').innerHTML=`<tr><td colspan="6" style="padding:2rem;text-align:center;color:#c0392b">${e.message}</td></tr>`;
+  }
+}
+
+function renderChips(){
+  const present=new Set(allFunds.map(f=>f.fndType).filter(Boolean));
+  document.getElementById('chips').innerHTML=TYPES.filter(t=>t==='전체'||present.has(t)).map(t=>
+    `<span class="chip${activeType===t?' active':''}" onclick="filterType('${t}')">${t}</span>`
+  ).join('');
+}
+
+function filterType(t){activeType=t;renderChips();renderFunds();}
+function onSearch(v){searchQ=v.trim();renderFunds();}
+function onSort(v){sortKey=v;renderFunds();}
+
+function getFiltered(){
+  let f=allFunds.slice();
+  if(activeType!=='전체') f=f.filter(x=>x.fndType===activeType);
+  if(searchQ) f=f.filter(x=>(x.fndNm||'').includes(searchQ));
+  f.sort((a,b)=>{
+    if(sortKey==='prc_desc') return safe(b.basprc)-safe(a.basprc);
+    if(sortKey==='prc_asc') return safe(a.basprc)-safe(b.basprc);
+    if(sortKey==='aum_desc') return safe(b.nPptAmt)-safe(a.nPptAmt);
+    if(sortKey==='aum_asc') return safe(a.nPptAmt)-safe(b.nPptAmt);
+    if(sortKey==='nm_asc') return (a.fndNm||'').localeCompare(b.fndNm||'');
+    return 0;
+  });
+  return f;
+}
+
+function renderFunds(){
+  const funds=getFiltered();
+  if(!funds.length){document.getElementById('tbody').innerHTML='<tr><td colspan="6" class="loading">검색 결과가 없어요</td></tr>';return;}
+  document.getElementById('tbody').innerHTML=funds.map((f,i)=>{
+    const uid=(f.fndCd||'')+i;
+    const ft=f.fndType||'기타';
+    return `<tr>
+      <td onclick="event.stopPropagation()"><input type="checkbox" ${selIds.has(uid)?'checked':''} onchange="toggle('${uid}',${i})"/></td>
+      <td style="font-size:13px" data-idx="${i}">${safeStr(f.fndNm)}</td>
+      <td data-idx="${i}"><span class="badge b${ft}">${ft}</span></td>
+      <td style="font-weight:500" data-idx="${i}">${safe(f.basprc).toLocaleString()}</td>
+      <td data-idx="${i}">${safe(f.nPptAmt).toLocaleString()}</td>
+      <td style="color:#aaa;font-size:12px" data-idx="${i}">${safeStr(f.basDt)}</td>
+    </tr>`;
+  }).join('');
+  // 행 클릭 이벤트
+  document.querySelectorAll('#tbody tr').forEach(row=>{
+    row.querySelectorAll('td[data-idx]').forEach(td=>{
+      td.addEventListener('click',()=>{
+        const idx=parseInt(td.dataset.idx);
+        const f=getFiltered()[idx];
+        if(f) showDetail(f.fndCd,f.fndNm);
+      });
+    });
+  });
+}
+
+function toggle(uid,idx){
+  if(selIds.has(uid)){selIds.delete(uid);}
+  else{if(selIds.size>=4){alert('최대 4개까지 선택할 수 있어요');renderFunds();return;}selIds.add(uid);}
+  renderFunds();updateBar();
+  const f=getFiltered()[idx];
+  if(!f) return;
+  if(selIds.has(uid)){if(!cmpBasket.some(b=>b.fndCd===f.fndCd)) cmpBasket.push(f);}
+  else{cmpBasket=cmpBasket.filter(b=>b.fndCd!==f.fndCd);}
+  renderBasket();
+}
+
+function updateBar(){
+  const n=selIds.size;
+  document.getElementById('ccount').textContent=n===0?'펀드를 선택하면 비교 탭에 추가돼요':`${n}개 선택됨`;
+  document.getElementById('cbtn').disabled=n<2;
+}
+
+function goToCompare(){switchTab('compare');renderBasket();}
+
+let searchTimer=null;
+async function onCmpSearch(v){
+  clearTimeout(searchTimer);
+  const el=document.getElementById('cmp-search-results');
+  if(!v.trim()){el.style.display='none';return;}
+  searchTimer=setTimeout(async()=>{
+    const res=await fetch('/api/search?q='+encodeURIComponent(v.trim()));
+    const d=await res.json();
+    if(!d.data.length){el.style.display='none';return;}
+    el.style.display='block';
+    el.innerHTML=d.data.map((f,i)=>`
+      <div class="sri" id="sri-${i}">
+        <div class="sri-name">${f.fndNm}</div>
+        <div class="sri-meta">${f.cmpyNm} · ${f.fndType} · 기준가 ${safe(f.basprc).toLocaleString()}</div>
+      </div>`).join('');
+    d.data.forEach((f,i)=>{
+      document.getElementById('sri-'+i).addEventListener('click',()=>addToBasket(f));
+    });
+  },200);
+}
+
+function addToBasket(f){
+  if(cmpBasket.some(b=>b.fndCd===f.fndCd)){alert('이미 추가된 펀드예요');return;}
+  if(cmpBasket.length>=4){alert('최대 4개까지 비교할 수 있어요');return;}
+  cmpBasket.push(f);
+  document.getElementById('cmp-search-results').style.display='none';
+  document.getElementById('cmp-search-input').value='';
+  renderBasket();
+}
+
+function removeFromBasket(fndCd){cmpBasket=cmpBasket.filter(b=>b.fndCd!==fndCd);renderBasket();}
+
+function renderBasket(){
+  const el=document.getElementById('cmp-basket');
+  const btn=document.getElementById('cmp-go-btn');
+  if(!cmpBasket.length){
+    el.innerHTML='<span style="font-size:13px;color:#aaa">펀드를 검색해서 추가해보세요</span>';
+    btn.disabled=true;return;
+  }
+  el.innerHTML=cmpBasket.map(f=>
+    `<span class="cmp-tag">${f.fndNm} <span style="font-size:11px;color:#888">(${f.cmpyNm})</span>
+      <button onclick="removeFromBasket('${f.fndCd}')">×</button>
+    </span>`
+  ).join('');
+  btn.disabled=cmpBasket.length<2;
+}
+
+async function runCompare(){
+  document.getElementById('cmp-search-view').style.display='none';
+  document.getElementById('cmp-result-view').style.display='block';
+  document.getElementById('cmp-result-title').textContent=`펀드 비교 (${cmpBasket.length}개)`;
+  document.getElementById('cmp-result-cards').innerHTML=cmpBasket.map((f,i)=>
+    `<div class="cmp-card" style="border-top:3px solid ${COLORS[i]}">
+      <p class="crc-title">${f.fndNm}</p>
+      <p class="crc-ins">${f.cmpyNm} <span class="badge b${f.fndType||'기타'}">${f.fndType||'기타'}</span></p>
+      <div class="crc-row"><span class="crc-lbl">기준가</span><span class="crc-val">${safe(f.basprc).toLocaleString()}</span></div>
+      <div class="crc-row"><span class="crc-lbl">순자산</span><span class="crc-val">${safe(f.nPptAmt).toLocaleString()}억</span></div>
+    </div>`
+  ).join('');
+  document.getElementById('cmp-ret-tbody').innerHTML='<tr><td colspan="7" class="loading"><span class="spinner"></span>수익률 계산 중...</td></tr>';
+  cmpHistories={};cmpReturns={};
+  await Promise.all(cmpBasket.map(async(f)=>{
+    const res=await fetch('/api/fund-history?fndCd='+encodeURIComponent(f.fndCd));
+    const d=await res.json();
+    if(d.success){cmpHistories[f.fndCd]=d.data;cmpReturns[f.fndCd]=d.returns;}
+  }));
+  renderCmpReturns();
+  renderCmpChart('12');
+}
+
+function renderCmpReturns(){
+  const periods=['1M','3M','6M','1Y','3Y','5Y'];
+  const labels={'1M':'1개월','3M':'3개월','6M':'6개월','1Y':'1년','3Y':'3년','5Y':'5년'};
+  document.getElementById('cmp-ret-tbody').innerHTML=cmpBasket.map((f,i)=>{
+    const rets=cmpReturns[f.fndCd]||{};
+    const cells=periods.map(p=>{
+      const v=rets[p];
+      if(v===undefined) return '<td style="text-align:center;padding:8px;color:#ccc">-</td>';
+      const cls=v>0?'up':v<0?'dn':'';
+      return `<td style="text-align:center;padding:8px"><span class="ret ${cls}">${v>0?'+':''}${v.toFixed(2)}%</span></td>`;
+    }).join('');
+    return `<tr style="border-bottom:1px solid #f0f0f0">
+      <td style="padding:10px 14px;font-size:13px">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${COLORS[i]};margin-right:6px"></span>
+        ${f.fndNm}<br><span style="font-size:11px;color:#888">${f.cmpyNm}</span>
+      </td>${cells}</tr>`;
+  }).join('');
+}
+
+function renderCmpChart(months){
+  if(cmpLineChart){cmpLineChart.destroy();cmpLineChart=null;}
+  document.getElementById('cmp-legend').innerHTML=cmpBasket.map((f,i)=>
+    `<span class="cli"><span style="width:14px;height:3px;background:${COLORS[i]};display:inline-block;border-radius:2px"></span>${f.fndNm} (${f.cmpyNm})</span>`
+  ).join('');
+  let cutoff='';
+  if(months&&months!=='0'){
+    const now=new Date();now.setMonth(now.getMonth()-parseInt(months));
+    cutoff=now.toISOString().slice(0,10).replace(/-/g,'').replace(/(\d{4})(\d{2})(\d{2})/,'$1.$2.$3');
+  }
+  const datasets=cmpBasket.map((f,i)=>{
+    let hist=cmpHistories[f.fndCd]||[];
+    if(cutoff) hist=hist.filter(h=>h.date>=cutoff);
+    return{label:f.fndNm,data:hist.map(h=>({x:h.date,y:h.basprc})),borderColor:COLORS[i],backgroundColor:'transparent',borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3};
+  });
+  cmpLineChart=new Chart(document.getElementById('cmp-line-chart'),{
+    type:'line',data:{datasets},
+    options:{responsive:true,maintainAspectRatio:false,parsing:{xAxisKey:'x',yAxisKey:'y'},
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+      scales:{x:{type:'category',ticks:{font:{size:10},maxTicksLimit:12},grid:{display:false}},y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.05)'}}}}
+  });
+}
+
+function changeCmpPeriod(el,months){
+  document.querySelectorAll('#cmp-period-btns .period-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');renderCmpChart(months);
+}
+
+async function showDetail(fndCd,fndNm){
+  const fund=allFunds.find(f=>f.fndCd===fndCd);
+  document.getElementById('tab-browse').style.display='none';
+  document.getElementById('tab-compare').style.display='none';
+  document.getElementById('view-detail').style.display='block';
+  document.getElementById('detail-title').textContent=fndNm;
+  document.getElementById('detail-meta').textContent=`${curIns} · 펀드코드 ${fndCd}`;
+  document.getElementById('detail-loading-msg').textContent='데이터 불러오는 중...';
+  document.getElementById('returns-grid').innerHTML='<div class="loading"><span class="spinner"></span></div>';
+  document.querySelectorAll('#period-btns .period-btn').forEach(b=>b.classList.toggle('active',b.textContent==='1년'));
+  if(fund){
+    document.getElementById('detail-stats').innerHTML=[
+      ['현재 기준가',safe(fund.basprc).toLocaleString(),'원'],
+      ['순자산',safe(fund.nPptAmt).toLocaleString(),'억원'],
+      ['유형',fund.fndType||'-',''],
+      ['기준일',fund.basDt||'-',''],
+    ].map(([l,v,u])=>`<div class="detail-stat"><div class="detail-stat-lbl">${l}</div><div class="detail-stat-val">${v}</div>${u?`<div class="detail-stat-sub">${u}</div>`:''}</div>`).join('');
+  }
+  if(detailChart){detailChart.destroy();detailChart=null;}
+  if(detailAumChart){detailAumChart.destroy();detailAumChart=null;}
+  try{
+    const res=await fetch('/api/fund-history?fndCd='+encodeURIComponent(fndCd));
+    const d=await res.json();
+    if(!d.success) throw new Error(d.error);
+    allHistory=d.data;
+    document.getElementById('detail-loading-msg').textContent=`총 ${allHistory.length}개 데이터`;
+    renderReturns(d.returns);renderDetailChart('12');
+  }catch(e){document.getElementById('detail-loading-msg').textContent='오류: '+e.message;}
+}
+
+function renderReturns(returns){
+  const labels={'1M':'1개월','3M':'3개월','6M':'6개월','1Y':'1년','2Y':'2년','3Y':'3년','5Y':'5년'};
+  document.getElementById('returns-grid').innerHTML=Object.entries(labels).map(([key,lbl])=>{
+    const v=returns?.[key];
+    if(v===undefined) return `<div class="return-card"><div class="return-lbl">${lbl}</div><div class="return-val" style="color:#ccc">-</div></div>`;
+    const cls=v>0?'up':v<0?'dn':'';
+    return `<div class="return-card"><div class="return-lbl">${lbl}</div><div class="return-val ${cls}">${v>0?'+':''}${v.toFixed(2)}%</div></div>`;
+  }).join('');
+}
+
+function renderDetailChart(months){
+  if(detailChart){detailChart.destroy();detailChart=null;}
+  if(detailAumChart){detailAumChart.destroy();detailAumChart=null;}
+  let filtered=allHistory;
+  if(months&&months!=='0'){
+    const now=new Date();now.setMonth(now.getMonth()-parseInt(months));
+    const cutoff=now.toISOString().slice(0,10).replace(/-/g,'').replace(/(\d{4})(\d{2})(\d{2})/,'$1.$2.$3');
+    filtered=allHistory.filter(h=>h.date>=cutoff);
+  }
+  if(!filtered.length) return;
+  const labels=filtered.map(h=>h.date);
+  const maxTicks=filtered.length>60?12:8;
+  detailChart=new Chart(document.getElementById('detail-chart'),{type:'line',data:{labels,datasets:[{label:'기준가',data:filtered.map(h=>h.basprc),borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,tension:0.3,pointRadius:filtered.length>50?0:3,pointHoverRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxTicksLimit:maxTicks},grid:{display:false}},y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+  detailAumChart=new Chart(document.getElementById('detail-aum-chart'),{type:'bar',data:{labels,datasets:[{label:'순자산(억)',data:filtered.map(h=>h.nPptAmt),backgroundColor:'rgba(29,158,117,0.7)',borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxTicksLimit:maxTicks},grid:{display:false}},y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+}
+
+function changePeriod(el,months){
+  document.querySelectorAll('#period-btns .period-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');renderDetailChart(months);
+}
+
+function goBackToList(){
+  document.getElementById('view-detail').style.display='none';
+  document.getElementById('tab-browse').style.display='block';
+  document.getElementById('nav-browse').classList.add('active');
+  document.getElementById('nav-compare').classList.remove('active');
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-box')) document.getElementById('cmp-search-results').style.display='none';
+});
+
+init();
+</script>
+</body>
+</html>
