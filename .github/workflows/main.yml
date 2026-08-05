@@ -24,11 +24,10 @@ jobs:
         run: node fetch-data.js
 
       - name: 변경사항 커밋 & 푸시
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/pjyoung158-max/fund-compare.git
           git add data/funds.json
           git diff --staged --quiet || git commit -m "데이터 자동 업데이트 $(date +'%Y-%m')"
           git push
